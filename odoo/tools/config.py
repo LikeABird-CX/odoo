@@ -12,6 +12,7 @@ import odoo
 from os.path import expandvars, expanduser, abspath, realpath, normcase
 from .. import release, conf, loglevels
 from . import appdirs
+from textwrap import dedent
 
 from passlib.context import CryptContext
 crypt_context = CryptContext(schemes=['pbkdf2_sha512', 'plaintext'],
@@ -103,51 +104,73 @@ class configmanager(object):
         self.parser = parser = optparse.OptionParser(version=version, option_class=MyOption)
 
         # Server startup config
-        group = optparse.OptionGroup(parser, "Common options")
-        group.add_option("-c", "--config", dest="config", help="specify alternate config file")
+        group = optparse.OptionGroup(parser, "通用设置(Common options)")
+        group.add_option("-c", "--config", dest="config", help=dedent("""指定替代的配置文件
+                                                                      specify alternate config file"""))
         group.add_option("-s", "--save", action="store_true", dest="save", default=False,
-                          help="save configuration to ~/.odoorc (or to ~/.openerp_serverrc if it exists)")
-        group.add_option("-i", "--init", dest="init", help="install one or more modules (comma-separated list, use \"all\" for all modules), requires -d")
+                          help=dedent("""将配置保存到~/.odoorc（或~/.openerp_serverrc，如果它存在的话）。
+                                         save configuration to ~/.odoorc (or to ~/.openerp_serverrc if it exists)"""))
+        group.add_option("-i", "--init", dest="init", 
+                         help=dedent("""安装一个或多个模块（以逗号分隔的列表，使用 \"all\" 表示所有模块）。需要 -d
+                                        install one or more modules (comma-separated list, use \"all\" for all modules), requires -d"""))
         group.add_option("-u", "--update", dest="update",
-                          help="update one or more modules (comma-separated list, use \"all\" for all modules). Requires -d.")
+                          help=dedent("""更新一个或多个模块（以逗号分隔的列表，使用 \"all\" 表示所有模块）。需要 -d
+                                         update one or more modules (comma-separated list, use \"all\" for all modules). Requires -d."""))
         group.add_option("--without-demo", dest="without_demo",
-                          help="disable loading demo data for modules to be installed (comma-separated, use \"all\" for all modules). Requires -d and -i. Default is %default",
+                          help=dedent("""禁止加载要安装的模块的demo数据（以逗号分隔，使用 \"all\" 表示所有模块）。需要 -d 和 -i。默认是%default
+                                         disable loading demo data for modules to be installed (comma-separated, use \"all\" for all modules). Requires -d and -i. Default is %default"""),
                           my_default=False)
         group.add_option("-P", "--import-partial", dest="import_partial", my_default='',
-                        help="Use this for big data importation, if it crashes you will be able to continue at the current state. Provide a filename to store intermediate importation states.")
-        group.add_option("--pidfile", dest="pidfile", help="file where the server pid will be stored")
+                        help=dedent("""用于大数据的导入，如果它崩溃了，你将能够在当前状态下继续。提供一个文件名来存储中间的导入状态。
+                                       Use this for big data importation, if it crashes you will be able to continue at the current state. Provide a filename to store intermediate importation states"""))
+        group.add_option("--pidfile", dest="pidfile", help=dedent("""存放服务器pid的文件
+                                                                     file where the server pid will be stored"""))
         group.add_option("--addons-path", dest="addons_path",
-                         help="specify additional addons paths (separated by commas).",
+                         help=dedent("""指定额外的附加组件路径（用逗号分隔）。
+                                        specify additional addons paths (separated by commas)."""),
                          action="callback", callback=self._check_addons_path, nargs=1, type="string")
         group.add_option("--upgrade-path", dest="upgrade_path",
-                         help="specify an additional upgrade path.",
+                         help=dedent("""指定一个额外的升级路径。
+                                        specify an additional upgrade path."""),
                          action="callback", callback=self._check_upgrade_path, nargs=1, type="string")
-        group.add_option("--load", dest="server_wide_modules", help="Comma-separated list of server-wide modules.", my_default='base,web')
+        group.add_option("--load", dest="server_wide_modules", help=dedent("""以逗号分隔的服务器范围内的模块列表。
+                                                                              Comma-separated list of server-wide modules."""), my_default='base,web')
 
         group.add_option("-D", "--data-dir", dest="data_dir", my_default=_get_default_datadir(),
-                         help="Directory where to store Odoo data")
+                         help=dedent("""存储Odoo数据的目录
+                                        Directory where to store Odoo data"""))
         parser.add_option_group(group)
 
         # HTTP
-        group = optparse.OptionGroup(parser, "HTTP Service Configuration")
+        group = optparse.OptionGroup(parser, "HTTP服务配置(HTTP Service Configuration)")
         group.add_option("--http-interface", dest="http_interface", my_default='',
-                         help="Listen interface address for HTTP services. "
-                              "Keep empty to listen on all interfaces (0.0.0.0)")
+                         help=dedent("""用于HTTP服务的监听接口地址，
+                                        保持为空以监听所有接口（0.0.0.0）。
+                                        Listen interface address for HTTP services. 
+                                        Keep empty to listen on all interfaces (0.0.0.0)"""))
         group.add_option("-p", "--http-port", dest="http_port", my_default=8069,
-                         help="Listen port for the main HTTP service", type="int", metavar="PORT")
+                         help=dedent("""主要的HTTP服务的监听端口
+                                        Listen port for the main HTTP service"""), type="int", metavar="PORT")
         group.add_option("--longpolling-port", dest="longpolling_port", my_default=0,
-                         help="Deprecated alias to the gevent-port option", type="int", metavar="PORT")
+                         help=dedent("""被废弃的gevent-port选项的别名
+                                        Deprecated alias to the gevent-port option"""), type="int", metavar="PORT")
         group.add_option("--gevent-port", dest="gevent_port", my_default=8072,
-                         help="Listen port for the gevent worker", type="int", metavar="PORT")
+                         help=dedent("""gevent worker的监听端口
+                                        Listen port for the gevent worker"""), type="int", metavar="PORT")
         group.add_option("--no-http", dest="http_enable", action="store_false", my_default=True,
-                         help="Disable the HTTP and Longpolling services entirely")
+                         help=dedent("""完全禁用HTTP和Longpolling服务
+                                        Disable the HTTP and Longpolling services entirely"""))
         group.add_option("--proxy-mode", dest="proxy_mode", action="store_true", my_default=False,
-                         help="Activate reverse proxy WSGI wrappers (headers rewriting) "
-                              "Only enable this when running behind a trusted web proxy!")
+                         help=dedent("""激活反向代理WSGI wrappers（headers rewriting）
+                                        只有在受信任的网络代理后面运行时才会启用此功能!
+                                        Activate reverse proxy WSGI wrappers (headers rewriting)
+                                        Only enable this when running behind a trusted web proxy!"""))
         group.add_option("--x-sendfile", dest="x_sendfile", action="store_true", my_default=False,
-                         help="Activate X-Sendfile (apache) and X-Accel-Redirect (nginx) "
-                              "HTTP response header to delegate the delivery of large "
-                              "files (assets/attachments) to the web server.")
+                         help=dedent("""激活X-Sendfile（apache）和X-Accel-Redirect（nginx）HTTP响应头，
+                                        将大型文件（assets/attachments）的交付委托给网络服务器。
+                                        Activate X-Sendfile (apache) and X-Accel-Redirect (nginx)
+                                        HTTP response header to delegate the delivery of large
+                                        files (assets/attachments) to the web server."""))
         # HTTP: hidden backwards-compatibility for "*xmlrpc*" options
         hidden = optparse.SUPPRESS_HELP
         group.add_option("--xmlrpc-interface", dest="http_interface", help=hidden)
@@ -159,54 +182,77 @@ class configmanager(object):
         # WEB
         group = optparse.OptionGroup(parser, "Web interface Configuration")
         group.add_option("--db-filter", dest="dbfilter", my_default='', metavar="REGEXP",
-                         help="Regular expressions for filtering available databases for Web UI. "
-                              "The expression can use %d (domain) and %h (host) placeholders.")
+                         help=dedent("""正则表达式用于过滤Web UI的可用数据库。
+                                        表达式可以使用%d（域）和%h（主机）占位符。
+                                        Regular expressions for filtering available databases for Web UI.
+                                        The expression can use %d (domain) and %h (host) placeholders."""))
         parser.add_option_group(group)
 
         # Testing Group
-        group = optparse.OptionGroup(parser, "Testing Configuration")
+        group = optparse.OptionGroup(parser, "测试配置(Testing Configuration)")
         group.add_option("--test-file", dest="test_file", my_default=False,
-                         help="Launch a python test file.")
+                         help=dedent("""启动一个Python测试文件。
+                                        Launch a python test file."""))
         group.add_option("--test-enable", action="callback", callback=self._test_enable_callback,
-                         dest='test_enable',
-                         help="Enable unit tests.")
+                         dest='test_enable',help=dedent("""启用单元测试。
+                                                           Enable unit tests."""))
         group.add_option("--test-tags", dest="test_tags",
-                         help="Comma-separated list of specs to filter which tests to execute. Enable unit tests if set. "
-                         "A filter spec has the format: [-][tag][/module][:class][.method] "
-                         "The '-' specifies if we want to include or exclude tests matching this spec. "
-                         "The tag will match tags added on a class with a @tagged decorator "
-                         "(all Test classes have 'standard' and 'at_install' tags "
-                         "until explicitly removed, see the decorator documentation). "
-                         "'*' will match all tags. "
-                         "If tag is omitted on include mode, its value is 'standard'. "
-                         "If tag is omitted on exclude mode, its value is '*'. "
-                         "The module, class, and method will respectively match the module name, test class name and test method name. "
-                         "Example: --test-tags :TestClass.test_func,/test_module,external "
-
-                         "Filtering and executing the tests happens twice: right "
-                         "after each module installation/update and at the end "
-                         "of the modules loading. At each stage tests are filtered "
-                         "by --test-tags specs and additionally by dynamic specs "
-                         "'at_install' and 'post_install' correspondingly.")
+                         help=dedent("""逗号分隔的规格列表，用于过滤要执行的测试。如果设置了，则启用单元测试。
+                                        一个过滤器规格的格式是： [-][tag][/module][:class][.method] 
+                                        '-'指定我们是否要包括或排除匹配此规格的测试。
+                                        标签将匹配添加在具有@tagged decorator的类上的标签
+                                        （所有测试类都有'标准'和'at_install'标签，直到明确删除，见装饰器文档）。
+                                        '*'将匹配所有标签。如果标签在包含模式下被省略，其值是'standard'。
+                                        如果标签在排除模式下被省略，它的值是'*'。
+                                        模块、类和方法将分别匹配模块名称、测试类名称和测试方法名称。
+                                        例子: --test-tags :TestClass.test_func,/test_module,external 
+                                        筛选和执行测试发生两次：在每个模块安装/更新后和模块加载结束时。
+                                        在每个阶段，测试被--test-tags规格过滤，另外还被动态规格
+                                        "at_install"和 "post_install"相应地过滤。
+                                        Comma-separated list of specs to filter which tests to execute. Enable unit tests if set. 
+                                        A filter spec has the format: [-][tag][/module][:class][.method] 
+                                        The '-' specifies if we want to include or exclude tests matching this spec. 
+                                        The tag will match tags added on a class with a @tagged decorator 
+                                        (all Test classes have 'standard' and 'at_install' tags 
+                                        until explicitly removed, see the decorator documentation). 
+                                        '*' will match all tags. 
+                                        If tag is omitted on include mode, its value is 'standard'. 
+                                        If tag is omitted on exclude mode, its value is '*'. 
+                                        The module, class, and method will respectively match the module name, test class name and test method name. 
+                                        Example: --test-tags :TestClass.test_func,/test_module,external 
+                                        Filtering and executing the tests happens twice: right 
+                                        after each module installation/update and at the end 
+                                        of the modules loading. At each stage tests are filtered 
+                                        by --test-tags specs and additionally by dynamic specs 
+                                        'at_install' and 'post_install' correspondingly."""))
 
         group.add_option("--screencasts", dest="screencasts", action="store", my_default=None,
                          metavar='DIR',
-                         help="Screencasts will go in DIR/{db_name}/screencasts.")
+                         help=dedent("""Screencasts将放在DIR/{db_name}/screencasts中。
+                                        Screencasts will go in DIR/{db_name}/screencasts."""))
         temp_tests_dir = os.path.join(tempfile.gettempdir(), 'odoo_tests')
         group.add_option("--screenshots", dest="screenshots", action="store", my_default=temp_tests_dir,
                          metavar='DIR',
-                         help="Screenshots will go in DIR/{db_name}/screenshots. Defaults to %s." % temp_tests_dir)
+                         help=dedent("""截图将被放在DIR/{db_name}/screenshots中。默认为%s。
+                                        Screenshots will go in DIR/{db_name}/screenshots. Defaults to %s.""" % (temp_tests_dir, temp_tests_dir)))
         parser.add_option_group(group)
 
         # Logging Group
-        group = optparse.OptionGroup(parser, "Logging Configuration")
-        group.add_option("--logfile", dest="logfile", help="file where the server log will be stored")
-        group.add_option("--syslog", action="store_true", dest="syslog", my_default=False, help="Send the log to the syslog server")
-        group.add_option('--log-handler', action="append", default=[], my_default=DEFAULT_LOG_HANDLER, metavar="PREFIX:LEVEL", help='setup a handler at LEVEL for a given PREFIX. An empty PREFIX indicates the root logger. This option can be repeated. Example: "odoo.orm:DEBUG" or "werkzeug:CRITICAL" (default: ":INFO")')
+        group = optparse.OptionGroup(parser, "日志配置(Logging Configuration)")
+        group.add_option("--logfile", dest="logfile", help=dedent("""储存服务器日志的文件
+                                                                     file where the server log will be stored"""))
+        group.add_option("--syslog", action="store_true", dest="syslog", my_default=False, 
+                         help=dedent("""将日志发送到syslog服务器上
+                                        Send the log to the syslog server"""))
+        group.add_option('--log-handler', action="append", default=[], my_default=DEFAULT_LOG_HANDLER, metavar="PREFIX:LEVEL", 
+                         help=dedent("""在LEVEL为给定的PREFIX设置一个处理程序。
+                                        一个空的PREFIX表示根记录器。这个选项可以重复使用。
+                                        例如： "odoo.orm:DEBUG"或"werkzeug:CRITICAL"(默认:":INFO")
+                                        setup a handler at LEVEL for a given PREFIX. An empty PREFIX indicates the root logger. This option can be repeated. Example: "odoo.orm:DEBUG" or "werkzeug:CRITICAL" (default: ":INFO")"""))
         group.add_option('--log-web', action="append_const", dest="log_handler", const="odoo.http:DEBUG", help='shortcut for --log-handler=odoo.http:DEBUG')
         group.add_option('--log-sql', action="append_const", dest="log_handler", const="odoo.sql_db:DEBUG", help='shortcut for --log-handler=odoo.sql_db:DEBUG')
-        group.add_option('--log-db', dest='log_db', help="Logging database", my_default=False)
-        group.add_option('--log-db-level', dest='log_db_level', my_default='warning', help="Logging database level")
+        group.add_option('--log-db', dest='log_db', help="""Logging database""", my_default=False)
+        group.add_option('--log-db-level', dest='log_db_level', my_default='warning', help=dedent("""Logging database level"""))
         # For backward-compatibility, map the old log levels to something
         # quite close.
         levels = [
@@ -215,7 +261,8 @@ class configmanager(object):
         ]
         group.add_option('--log-level', dest='log_level', type='choice',
                          choices=levels, my_default='info',
-                         help='specify the level of the logging. Accepted values: %s.' % (levels,))
+                         help=dedent("""指定日志记录的级别。接受的值: %s.
+                                        specify the level of the logging. Accepted values: %s.""" % (levels, levels)))
 
         parser.add_option_group(group)
 
@@ -241,109 +288,156 @@ class configmanager(object):
                          help='specify the SSL private key used for authentication')
         parser.add_option_group(group)
 
-        group = optparse.OptionGroup(parser, "Database related options")
+        group = optparse.OptionGroup(parser, "数据库相关选项(Database related options)")
         group.add_option("-d", "--database", dest="db_name", my_default=False,
-                         help="specify the database name")
+                         help=dedent("""指定数据库名称
+                                        specify the database name"""))
         group.add_option("-r", "--db_user", dest="db_user", my_default=False,
-                         help="specify the database user name")
+                         help=dedent("""指定数据库用户名称
+                                        specify the database user name"""))
         group.add_option("-w", "--db_password", dest="db_password", my_default=False,
-                         help="specify the database password")
-        group.add_option("--pg_path", dest="pg_path", help="specify the pg executable path")
+                         help=dedent("""指定数据库密码
+                                        specify the database password"""))
+        group.add_option("--pg_path", dest="pg_path", 
+                         help=dedent("""指定pg可执行路径
+                                        specify the pg executable path"""))
         group.add_option("--db_host", dest="db_host", my_default=False,
-                         help="specify the database host")
+                         help=dedent("""指定数据库主机
+                                        specify the database host"""))
         group.add_option("--db_port", dest="db_port", my_default=False,
-                         help="specify the database port", type="int")
+                         help=dedent("""指定数据库端口
+                                        specify the database port"""), 
+                        type="int")
         group.add_option("--db_sslmode", dest="db_sslmode", type="choice", my_default='prefer',
                          choices=['disable', 'allow', 'prefer', 'require', 'verify-ca', 'verify-full'],
-                         help="specify the database ssl connection mode (see PostgreSQL documentation)")
+                         help=dedent("""指定数据库的ssl连接模式（见PostgreSQL文档）。
+                                        specify the database ssl connection mode (see PostgreSQL documentation)"""))
         group.add_option("--db_maxconn", dest="db_maxconn", type='int', my_default=64,
-                         help="specify the maximum number of physical connections to PostgreSQL")
+                         help=dedent("""指定到PostgreSQL的最大物理连接数
+                                        specify the maximum number of physical connections to PostgreSQL"""))
         group.add_option("--db-template", dest="db_template", my_default="template0",
-                         help="specify a custom database template to create a new database")
+                         help=dedent("""指定一个自定义的数据库模板来创建一个新的数据库
+                                        specify a custom database template to create a new database"""))
         parser.add_option_group(group)
 
-        group = optparse.OptionGroup(parser, "Internationalisation options",
-            "Use these options to translate Odoo to another language. "
-            "See i18n section of the user manual. Option '-d' is mandatory. "
-            "Option '-l' is mandatory in case of importation"
+        group = optparse.OptionGroup(
+            parser, dedent("""\
+                    国际化选项,使用这些选项可以将Odoo翻译成另一种语言。
+                      见用户手册的i18n部分。选项'-d'是必须的。
+                      选项'-l'在importation的情况下是必须的:
+                      Internationalisation options,
+                      Use these options to translate Odoo to another language.
+                      See i18n section of the user manual. Option '-d' is mandatory.
+                      Option '-l' is mandatory in case of importation""")
             )
         group.add_option('--load-language', dest="load_language",
-                         help="specifies the languages for the translations you want to be loaded")
+                         help=dedent("""指定你想要加载的翻译的语言
+                                        specifies the languages for the translations you want to be loaded"""))
         group.add_option('-l', "--language", dest="language",
-                         help="specify the language of the translation file. Use it with --i18n-export or --i18n-import")
+                         help=dedent("""指定翻译文件的语言。与--i18n-export或--i18n-import一起使用。
+                                        specify the language of the translation file. Use it with --i18n-export or --i18n-import"""))
         group.add_option("--i18n-export", dest="translate_out",
-                         help="export all sentences to be translated to a CSV file, a PO file or a TGZ archive and exit")
+                         help=dedent("""将所有要翻译的句子导出到CSV文件、PO文件或TGZ档案，然后退出
+                                        export all sentences to be translated to a CSV file, a PO file or a TGZ archive and exit"""))
         group.add_option("--i18n-import", dest="translate_in",
-                         help="import a CSV or a PO file with translations and exit. The '-l' option is required.")
+                         help=dedent("""导入一个带有翻译的CSV或PO文件，然后退出。需要使用'-l'选项。
+                                        import a CSV or a PO file with translations and exit. The '-l' option is required."""))
         group.add_option("--i18n-overwrite", dest="overwrite_existing_translations", action="store_true", my_default=False,
-                         help="overwrites existing translation terms on updating a module or importing a CSV or a PO file.")
+                         help=dedent("""在更新模块或导入CSV或PO文件时覆盖现有的翻译术语。
+                                        overwrites existing translation terms on updating a module or importing a CSV or a PO file."""))
         group.add_option("--modules", dest="translate_modules",
-                         help="specify modules to export. Use in combination with --i18n-export")
+                         help=dedent("""指定要导出的模块。与--i18n-export结合使用
+                                        specify modules to export. Use in combination with --i18n-export"""))
         parser.add_option_group(group)
 
-        security = optparse.OptionGroup(parser, 'Security-related options')
+        security = optparse.OptionGroup(parser, '与安全相关的选项(Security-related options)')
         security.add_option('--no-database-list', action="store_false", dest='list_db', my_default=True,
-                            help="Disable the ability to obtain or view the list of databases. "
-                                 "Also disable access to the database manager and selector, "
-                                 "so be sure to set a proper --database parameter first")
+                            help=dedent("""禁用获取或查看数据库列表的能力。
+                                           同时禁止对数据库管理器和选择器的访问、 所以一定要先设置一个合适的--database参数
+                                           Disable the ability to obtain or view the list of databases. 
+                                           Also disable access to the database manager and selector, 
+                                           so be sure to set a proper --database parameter first"""))
         parser.add_option_group(security)
 
         # Advanced options
-        group = optparse.OptionGroup(parser, "Advanced options")
+        group = optparse.OptionGroup(parser, "高级选项(Advanced options)")
         group.add_option('--dev', dest='dev_mode', type="string",
-                         help="Enable developer mode. Param: List of options separated by comma. "
-                              "Options : all, reload, qweb, xml")
+                         help=dedent("""启用开发者模式。Param: 用逗号分隔的选项列表。
+                                        Options: all, reload, qweb, xml
+                                        Enable developer mode. Param: List of options separated by comma. 
+                                        "Options : all, reload, qweb, xml"""))
         group.add_option('--shell-interface', dest='shell_interface', type="string",
-                         help="Specify a preferred REPL to use in shell mode. Supported REPLs are: "
-                              "[ipython|ptpython|bpython|python]")
+                         help=dedent("""指定一个在shell模式下使用的首选REPL。支持的REPL有:
+                                        [ipython|ptpython|bpython|python]
+                                        Specify a preferred REPL to use in shell mode. Supported REPLs are: 
+                                        [ipython|ptpython|bpython|python]"""))
         group.add_option("--stop-after-init", action="store_true", dest="stop_after_init", my_default=False,
-                          help="stop the server after its initialization")
+                          help=dedent("""初始化后停止服务器
+                                         stop the server after its initialization"""))
         group.add_option("--osv-memory-count-limit", dest="osv_memory_count_limit", my_default=0,
-                         help="Force a limit on the maximum number of records kept in the virtual "
-                              "osv_memory tables. By default there is no limit.",
+                         help=dedent("""强制限制保存在虚拟osv_memory表中的最大记录数。默认情况下是没有限制的。
+                                        Force a limit on the maximum number of records kept in the virtual 
+                                        osv_memory tables. By default there is no limit."""),
                          type="int")
         group.add_option("--transient-age-limit", dest="transient_age_limit", my_default=1.0,
-                         help="Time limit (decimal value in hours) records created with a "
-                              "TransientModel (mostly wizard) are kept in the database. Default to 1 hour.",
+                         help=dedent("""用TransientModel（主要是向导）创建的记录在数据库中
+                                        保存的时间限制（十进制值，以小时为单位）。默认为1小时。
+                                        Time limit (decimal value in hours) records 
+                                        created with a TransientModel (mostly wizard) 
+                                        are kept in the database. Default to 1 hour."""),
                          type="float")
         group.add_option("--osv-memory-age-limit", dest="osv_memory_age_limit", my_default=False,
-                         help="Deprecated alias to the transient-age-limit option",
+                         help=dedent("""已被废弃的Transient-age-limit选项的别名。
+                                        Deprecated alias to the transient-age-limit option"""),
                          type="float")
         group.add_option("--max-cron-threads", dest="max_cron_threads", my_default=2,
-                         help="Maximum number of threads processing concurrently cron jobs (default 2).",
+                         help=dedent("""同时处理cron作业的最大线程数（默认为2）。
+                                        Maximum number of threads processing concurrently cron jobs (default 2)."""),
                          type="int")
         group.add_option("--unaccent", dest="unaccent", my_default=False, action="store_true",
-                         help="Try to enable the unaccent extension when creating new databases.")
+                         help=dedent("""在创建新数据库时，尝试启用unaccent扩展。
+                                        Try to enable the unaccent extension when creating new databases."""))
         group.add_option("--geoip-db", dest="geoip_database", my_default='/usr/share/GeoIP/GeoLite2-City.mmdb',
-                         help="Absolute path to the GeoIP database file.")
+                         help=dedent("""GeoIP数据库文件的绝对路径。
+                                        Absolute path to the GeoIP database file."""))
         parser.add_option_group(group)
 
         if os.name == 'posix':
-            group = optparse.OptionGroup(parser, "Multiprocessing options")
+            group = optparse.OptionGroup(parser, "多进程选项(Multiprocessing options)")
             # TODO sensible default for the three following limits.
             group.add_option("--workers", dest="workers", my_default=0,
-                             help="Specify the number of workers, 0 disable prefork mode.",
+                             help=dedent("""指定workers的数量，0 禁用prefork模式。
+                                            Specify the number of workers, 0 disable prefork mode."""),
                              type="int")
             group.add_option("--limit-memory-soft", dest="limit_memory_soft", my_default=2048 * 1024 * 1024,
-                             help="Maximum allowed virtual memory per worker (in bytes), when reached the worker be "
-                             "reset after the current request (default 2048MiB).",
+                             help=dedent("""每个工作器允许的最大虚拟内存（以字节为单位），当达到时，
+                                            worker将在当前请求后被重置（默认为 2048MiB）。
+                                            Maximum allowed virtual memory per worker (in bytes), when reached the worker be
+                                            reset after the current request (default 2048MiB)."""),
                              type="int")
             group.add_option("--limit-memory-hard", dest="limit_memory_hard", my_default=2560 * 1024 * 1024,
-                             help="Maximum allowed virtual memory per worker (in bytes), when reached, any memory "
-                             "allocation will fail (default 2560MiB).",
+                             help=dedent("""每个worker允许的最大虚拟内存（以字节为单位），当达到时，
+                                            任何内存分配都会失败（默认为2560MiB）。
+                                            Maximum allowed virtual memory per worker (in bytes), when reached, any memory 
+                                            allocation will fail (default 2560MiB)."""),
                              type="int")
             group.add_option("--limit-time-cpu", dest="limit_time_cpu", my_default=60,
-                             help="Maximum allowed CPU time per request (default 60).",
+                             help=dedent("""每个请求允许的最大CPU时间（默认为60）。
+                                            Maximum allowed CPU time per request (default 60)."""),
                              type="int")
             group.add_option("--limit-time-real", dest="limit_time_real", my_default=120,
-                             help="Maximum allowed Real time per request (default 120).",
+                             help=dedent("""每个请求允许的最大实时时间（默认为120）。
+                                            Maximum allowed Real time per request (default 120)."""),
                              type="int")
             group.add_option("--limit-time-real-cron", dest="limit_time_real_cron", my_default=-1,
-                             help="Maximum allowed Real time per cron job. (default: --limit-time-real). "
-                                  "Set to 0 for no limit. ",
+                             help=dedent("""每个cron job允许的最大实时时间。(默认：--limit-time-real）。
+                                            设置为0表示没有限制。
+                                            Maximum allowed Real time per cron job. (default: --limit-time-real). 
+                                            Set to 0 for no limit."""),
                              type="int")
             group.add_option("--limit-request", dest="limit_request", my_default=2**16,
-                             help="Maximum number of request to be processed per worker (default 65536).",
+                             help=dedent("""每个worker要处理的最大请求数（默认为65536）。
+                                            Maximum number of request to be processed per worker (default 65536)."""),
                              type="int")
             parser.add_option_group(group)
 
